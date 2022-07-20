@@ -1,3 +1,5 @@
+using Play.Catalog.Service.Settings;
+using Play.Common.MassTransit;
 using Play.Common.MongoDB;
 using Play.Common.Settings;
 using Play.Inventory.Service.Entities;
@@ -13,9 +15,16 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection(MongoDbSettings.SettingName));
 builder.Services.Configure<ServiceSettings>(builder.Configuration.GetSection(ServiceSettings.SettingName));
-
+var rabbitMQSettings = builder.Configuration.GetSection(nameof(RabbitMQSettings)).Get<RabbitMQSettings>();
 var mongoDbSettings = builder.Configuration.GetSection(nameof(MongoDbSettings)).Get<MongoDbSettings>();
-builder.Services.AddMongo(mongoDbSettings).AddMongoRepository<InventoryItem>("inventoryitems");
+var serviceSettings = builder.Configuration.GetSection(nameof(ServiceSettings)).Get<ServiceSettings>();
+builder.Services.
+    AddMongo(mongoDbSettings)
+    .AddMongoRepository<InventoryItem>("inventoryitems")
+    .AddMongoRepository<CatalogItem>("catalogitems")
+    .AddMassTransitWithRabbitMQ(rabbitMQSettings, serviceSettings);
+    
+
 
 
 
